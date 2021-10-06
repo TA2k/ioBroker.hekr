@@ -19,7 +19,9 @@ Adapter for Hekr Wisen Elro Apps
 Die Wisen App Mail und Passwort eingeben.
 
 ## Steuern
-hekr.0.id. direkt setzen
+Einschalten/Ausschalten
+hekr.0.ID.status.sw auf 1 oder 0 setzen
+hekr.0.ID.status.light_Sw auf 1 oder 0 setzen
 
 ## Diskussion und Fragen:
 https://forum.iobroker.net/topic/48262/test-adapter-hekr-wisen-elro-app-v0-0-x
