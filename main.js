@@ -38,12 +38,13 @@ class Hekr extends utils.Adapter {
         this.refreshTokenTimeout = null;
         this.json2iob = new Json2iob(this);
         this.deviceArray = [];
+        this.session = {};
 
         this.subscribeStates("*");
 
         await this.login();
 
-        if (this.session.token) {
+        if (this.session.access_token) {
             await this.getDeviceList();
             await this.connectToWS();
 
@@ -80,6 +81,7 @@ class Hekr extends utils.Adapter {
                 this.log.debug(JSON.stringify(res.data));
 
                 this.setState("info.connection", true, true);
+                this.log.info("Login successful");
                 this.session = res.data;
             })
             .catch((error) => {
@@ -102,6 +104,7 @@ class Hekr extends utils.Adapter {
         })
             .then(async (res) => {
                 this.log.debug(JSON.stringify(res.data));
+                this.log.info(res.data.length + " devices found.");
                 for (const device of res.data) {
                     this.deviceArray.push({ devTid: device.ctrlKey });
                     await this.setObjectNotExistsAsync(device.devTid, {
