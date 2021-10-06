@@ -184,7 +184,7 @@ class Hekr extends utils.Adapter {
                 if (jsonMessage.action === "devSend") {
                     const params = jsonMessage.params;
                     if (Object.keys(params.data).length > 1) {
-                        this.json2iob.parse(params.devTid + ".status", params.data);
+                        this.json2iob.parse(params.devTid + ".status", params.data, { write: true });
                         this.log.debug("WS received:" + message);
                     }
                     // if (params.data.raw) {
