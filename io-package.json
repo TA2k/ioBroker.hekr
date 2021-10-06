@@ -1,0 +1,111 @@
+{
+    "common": {
+        "name": "hekr",
+        "version": "0.0.1",
+        "news": {
+            "0.0.1": {
+                "en": "initial release",
+                "de": "Erstveröffentlichung",
+                "ru": "Начальная версия",
+                "pt": "lançamento inicial",
+                "nl": "Eerste uitgave",
+                "fr": "Première version",
+                "it": "Versione iniziale",
+                "es": "Versión inicial",
+                "pl": "Pierwsze wydanie",
+                "zh-cn": "首次出版"
+            }
+        },
+        "title": "Hekr Wisen Elro",
+        "titleLang": {
+            "en": "Hekr Wisen Elro",
+            "de": "Hekr Weisen Elro",
+            "ru": "Хекр Висен Эльро",
+            "pt": "Hekr Wisen Elro",
+            "nl": "Hekr Wisen Elro",
+            "fr": "Hekr Wisen Elro",
+            "it": "Hekr Wisen Elro",
+            "es": "Hekr Wisen Elro",
+            "pl": "Hekr Wisen Elro",
+            "zh-cn": "Hekr Wisen Elro"
+        },
+        "desc": {
+            "en": "Adapter for Hekr Wisen Elro Apps",
+            "de": "Adapter für Hekr Wisen Elro Apps",
+            "ru": "Адаптер для приложений Hekr Wisen Elro",
+            "pt": "Adaptador para aplicativos Hekr Wisen Elro",
+            "nl": "Adapter voor Hekr Wisen Elro Apps",
+            "fr": "Adaptateur pour applications Hekr Wisen Elro",
+            "it": "Adattatore per app Hekr Wisen Elro",
+            "es": "Adaptador para aplicaciones Hekr Wisen Elro",
+            "pl": "Adapter do aplikacji Hekr Wisen Elro",
+            "zh-cn": "Hekr Wisen Elro 应用程序适配器"
+        },
+        "authors": [
+            "TA2k <tombox2020@gmail.com>"
+        ],
+        "keywords": [
+            "hekr",
+            "wisen",
+            "elro"
+        ],
+        "license": "MIT",
+        "platform": "Javascript/Node.js",
+        "main": "main.js",
+        "icon": "hekr.png",
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/TA2k/ioBroker.hekr/master/admin/hekr.png",
+        "readme": "https://github.com/TA2k/ioBroker.hekr/blob/master/README.md",
+        "loglevel": "info",
+        "mode": "daemon",
+        "type": "household",
+        "compact": true,
+        "connectionType": "cloud",
+        "dataSource": "poll",
+        "materialize": true,
+        "dependencies": [
+            {
+                "js-controller": ">=3.0.0"
+            }
+        ],
+        "globalDependencies": [
+            {
+                "admin": ">=4.0.9"
+            }
+        ]
+    },
+    "encryptedNative": [
+        "password"
+    ],
+    "protectedNative": [
+        "password"
+    ],
+    "native": {
+        "username": "",
+        "password": ""
+    },
+    "objects": [],
+    "instanceObjects": [
+        {
+            "_id": "info",
+            "type": "channel",
+            "common": {
+                "name": "Information"
+            },
+            "native": {}
+        },
+        {
+            "_id": "info.connection",
+            "type": "state",
+            "common": {
+                "role": "indicator.connected",
+                "name": "Device or service connected",
+                "type": "boolean",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
+        }
+    ]
+}
