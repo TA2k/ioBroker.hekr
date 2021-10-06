@@ -22,7 +22,7 @@ Die Wisen App Mail und Passwort eingeben.
 hekr.0.id. direkt setzen
 
 ## Diskussion und Fragen:
-https://forum.iobroker.net/topic/
+https://forum.iobroker.net/topic/48262/test-adapter-hekr-wisen-elro-app-v0-0-x
 
 ## Changelog
 
