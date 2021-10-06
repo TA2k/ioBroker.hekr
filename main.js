@@ -40,6 +40,7 @@ class Hekr extends utils.Adapter {
         this.deviceDict = {};
         this.session = {};
 
+        this.commands = { sw0: "4807026a0200bd", sw1: "4807026c0201c0", light_Sw1: "4807024803019d", light_Sw0: "4807024a03009e" };
         this.subscribeStates("*");
 
         await this.login();
@@ -182,24 +183,27 @@ class Hekr extends utils.Adapter {
 
                 if (jsonMessage.action === "devSend") {
                     const params = jsonMessage.params;
-                    this.json2iob.parse(params.devTid + ".status", params.data);
-                    if (params.data.raw) {
-                        for (let n = 0; n < params.data.raw.length; n += 2) {
-                            const index = n / 2;
-                            await this.setObjectNotExistsAsync(params.devTid + ".status.rawData.value" + index, {
-                                type: "state",
-                                common: {
-                                    role: "value",
-                                    type: "number",
-                                    write: false,
-                                    read: false,
-                                },
-                                native: {},
-                            });
-
-                            this.setState(params.devTid + ".status.rawData.value" + index, parseInt(params.data.raw.substr(n, 2), 16), true);
-                        }
+                    if (Object.keys(params.data).length > 1) {
+                        this.json2iob.parse(params.devTid + ".status", params.data);
+                        this.log.debug("WS received:" + message);
                     }
+                    // if (params.data.raw) {
+                    //     for (let n = 0; n < params.data.raw.length; n += 2) {
+                    //         const index = n / 2;
+                    //         await this.setObjectNotExistsAsync(params.devTid + ".status.rawData.value" + index, {
+                    //             type: "state",
+                    //             common: {
+                    //                 role: "value",
+                    //                 type: "number",
+                    //                 write: false,
+                    //                 read: false,
+                    //             },
+                    //             native: {},
+                    //         });
+
+                    //         this.setState(params.devTid + ".status.rawData.value" + index, parseInt(params.data.raw.substr(n, 2), 16), true);
+                    //     }
+                    // }
                 } else {
                     this.log.debug("WS received:" + message);
                 }
@@ -247,18 +251,14 @@ class Hekr extends utils.Adapter {
             if (!state.ack) {
                 const pre = this.name + "." + this.instance;
                 const deviceId = id.split(".")[2];
+                let command = id.split(".")[4];
                 const ctrlKey = this.deviceDict[deviceId];
-                const states = await this.getStatesAsync(pre + "." + deviceId + ".status.rawData.*");
-                const allIds = Object.keys(states);
-                let rawString = "";
-
-                allIds.forEach((element) => {
-                    let curVal = states[element].val;
-                    if (element === id) {
-                        curVal = state.val;
-                    }
-                    rawString += curVal.toString(16).padStart(2, "0").toUpperCase();
-                });
+                command = command + state.val;
+                if (!this.commands[command]) {
+                    this.log.info("Command not implemented");
+                    return;
+                }
+                const rawString = this.commands[command];
                 this.ws.send(
                     JSON.stringify({
                         msgId: 65,
