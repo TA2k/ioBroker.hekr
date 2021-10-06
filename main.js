@@ -37,7 +37,7 @@ class Hekr extends utils.Adapter {
         this.reLoginTimeout = null;
         this.refreshTokenTimeout = null;
         this.json2iob = new Json2iob(this);
-        this.deviceArray = [];
+        this.deviceDict = {};
         this.session = {};
 
         this.subscribeStates("*");
@@ -106,7 +106,7 @@ class Hekr extends utils.Adapter {
                 this.log.debug(JSON.stringify(res.data));
                 this.log.info(res.data.length + " devices found.");
                 for (const device of res.data) {
-                    this.deviceArray.push({ devTid: device.ctrlKey });
+                    this.deviceDict[device.devTid] = device.ctrlKey;
                     await this.setObjectNotExistsAsync(device.devTid, {
                         type: "device",
                         common: {
@@ -155,6 +155,7 @@ class Hekr extends utils.Adapter {
             },
         };
         this.ws.on("open", () => {
+            //this.log.debug("WS received:" + message);
             this.log.debug("WS open");
             this.ws.send(JSON.stringify(this.wsAuthMessage));
             if (this.heartbeatInterval) {
@@ -162,11 +163,10 @@ class Hekr extends utils.Adapter {
             }
             this.heartbeatInterval = setInterval(() => {
                 this.ws.send(JSON.stringify({ msgId: 53, action: "heartbeat" }));
-            }, 30 * 1000); // 30se
+            }, 10 * 1000); // 30se
         });
 
         this.ws.on("message", async (message) => {
-            this.log.debug("WS received:" + message);
             if (this.wsHeartbeatTimeout) {
                 clearTimeout(this.wsHeartbeatTimeout);
             }
@@ -176,7 +176,7 @@ class Hekr extends utils.Adapter {
                 setTimeout(() => {
                     this.connectToWS();
                 }, 2000);
-            }, 1 * 70 * 1000); //1min
+            }, 70 * 1000); //1min
             try {
                 const jsonMessage = JSON.parse(message);
 
@@ -200,6 +200,8 @@ class Hekr extends utils.Adapter {
                             this.setState(params.devTid + ".status.rawData.value" + index, parseInt(params.data.raw.substr(n, 2), 16), true);
                         }
                     }
+                } else {
+                    this.log.debug("WS received:" + message);
                 }
             } catch (error) {
                 this.log.error(error);
@@ -245,12 +247,17 @@ class Hekr extends utils.Adapter {
             if (!state.ack) {
                 const pre = this.name + "." + this.instance;
                 const deviceId = id.split(".")[2];
-                const ctrlKey = this.deviceArray[deviceId];
-                const states = await this.getStatesAsync(pre + ".deviceId.data.rawData");
+                const ctrlKey = this.deviceDict[deviceId];
+                const states = await this.getStatesAsync(pre + "." + deviceId + ".status.rawData.*");
                 const allIds = Object.keys(states);
                 let rawString = "";
-                states.forEach((element) => {
-                    rawString += element.val.toString(16);
+
+                allIds.forEach((element) => {
+                    let curVal = states[element].val;
+                    if (element === id) {
+                        curVal = state.val;
+                    }
+                    rawString += curVal.toString(16).padStart(2, "0").toUpperCase();
                 });
                 this.ws.send(
                     JSON.stringify({
