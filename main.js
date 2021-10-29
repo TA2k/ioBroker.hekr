@@ -10,6 +10,7 @@ const utils = require("@iobroker/adapter-core");
 const Json2iob = require("./lib/json2iob");
 const axios = require("axios");
 const WebSocket = require("ws");
+const udpSocket = require("dgram");
 
 class Hekr extends utils.Adapter {
     /**
@@ -23,6 +24,14 @@ class Hekr extends utils.Adapter {
         this.on("ready", this.onReady.bind(this));
         this.on("stateChange", this.onStateChange.bind(this));
         this.on("unload", this.onUnload.bind(this));
+        this.reLoginTimeout = null;
+        this.refreshTokenTimeout = null;
+        this.json2iob = new Json2iob(this);
+        this.deviceDict = {};
+        this.deviceMode = {};
+        this.devicelanIp = {};
+        this.session = {};
+        this.tplkkl = { sw: 2, light_Sw: 3, speed: 4, tm_Minutes: 5, cleaning: 6, R: 7, B: 7, G: 7, rgb: 7, hour: 8, minute: 8, second: 8, time: 8 };
     }
 
     /**
@@ -34,13 +43,6 @@ class Hekr extends utils.Adapter {
 
         this.requestClient = axios.create();
 
-        this.reLoginTimeout = null;
-        this.refreshTokenTimeout = null;
-        this.json2iob = new Json2iob(this);
-        this.deviceDict = {};
-        this.session = {};
-
-        this.commands = { sw0: "4807026a0200bd", sw1: "4807026c0201c0", light_Sw1: "4807024803019d", light_Sw0: "4807024a03009e" };
         this.subscribeStates("*");
 
         await this.login();
@@ -92,6 +94,7 @@ class Hekr extends utils.Adapter {
                 }
             });
     }
+
     async getDeviceList() {
         await this.requestClient({
             method: "get",
@@ -108,6 +111,10 @@ class Hekr extends utils.Adapter {
                 this.log.info(res.data.length + " devices found.");
                 for (const device of res.data) {
                     this.deviceDict[device.devTid] = device.ctrlKey;
+                    this.deviceMode[device.devTid] = device.workModeType;
+                    this.devicelanIp[device.devTid] = device.lanIp;
+                    const productPubKey = device.productPublicKey;
+                    const DevID = device.devTid;
                     await this.setObjectNotExistsAsync(device.devTid, {
                         type: "device",
                         common: {
@@ -132,6 +139,65 @@ class Hekr extends utils.Adapter {
                     });
 
                     this.json2iob.parse(device.devTid + ".general", device);
+
+                    await this.setObjectNotExists(device.devTid + ".status.rgb", {
+                        //Workaround fuer Farben
+                        type: "state",
+                        common: {
+                            name: "rgb",
+                            type: "string",
+                            read: true,
+                            write: true,
+                            role: "level.color.rgb",
+                            desc: "Fuer Alexa IOT",
+                        },
+                        native: {},
+                    });
+
+                    await this.setObjectNotExists(device.devTid + ".status.time", {
+                        //Button für aktuelle Zeit senden
+                        type: "state",
+                        common: {
+                            name: "time",
+                            type: "boolean",
+                            read: false,
+                            write: true,
+                            role: "button",
+                            def: false,
+                            desc: "Button fuer aktuelle Zeit zu senden",
+                        },
+                        native: {},
+                    });
+
+                    await this.requestClient({
+                        method: "get",
+                        url: "https://console-openapi.hekreu.me/external/device/protocolTemplate",
+                        headers: {
+                            Accept: "*/*",
+                            "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
+                            "Accept-Language": "de",
+                            "X-Hekr-ProdPubKey": productPubKey,
+                            Authorization: "Bearer " + this.session.access_token,
+                        },
+                    })
+                        .then(async (res) => {
+                            this.log.debug(JSON.stringify(res.data));
+                            this.log.info("1 template found.");
+
+                            await this.setObjectNotExistsAsync(DevID + ".template", {
+                                type: "channel",
+                                common: {
+                                    name: "Template",
+                                },
+                                native: {},
+                            });
+
+                            this.json2iob.parse(DevID + ".template", res.data);
+                        })
+                        .catch((error) => {
+                            this.log.error(error);
+                            error.response && this.log.error(JSON.stringify(error.response.data));
+                        });
                 }
             })
             .catch((error) => {
@@ -246,31 +312,108 @@ class Hekr extends utils.Adapter {
      * @param {string} id
      * @param {ioBroker.State | null | undefined} state
      */
+    DecToHex(d) {
+        const hex = d.toString(16);
+        return hex.length == 1 ? "0" + hex : hex;
+    }
+
     async onStateChange(id, state) {
         if (state) {
             if (!state.ack) {
                 const pre = this.name + "." + this.instance;
                 const deviceId = id.split(".")[2];
-                let command = id.split(".")[4];
+                const command = id.split(".")[4];
+                let rawString = "NOTFOUND";
                 const ctrlKey = this.deviceDict[deviceId];
-                command = command + state.val;
-                if (!this.commands[command]) {
-                    this.log.info("Command not implemented");
+                const workMode = this.deviceMode[deviceId];
+                const lanIp = this.devicelanIp[deviceId];
+
+                if (command == "B" || command == "G" || command == "R") {
+                    this.log.info("For color use datapoint rgb");
                     return;
                 }
-                const rawString = this.commands[command];
-                this.ws.send(
-                    JSON.stringify({
-                        msgId: 65,
+
+                if (!this.tplkkl[command]) {
+                    this.log.info("Command " + command + " not implemented");
+                    return;
+                }
+
+                rawString = this.tplkkl[command];
+
+                if (command == "rgb") {
+                    if (state.val != "ffffff" && state.val != "000000") {
+                        let rgbstr = state.val;
+                        if (rgbstr.length == 7) {
+                            rgbstr = rgbstr.replace("#", "");
+                        } else if (rgbstr.length != 6) {
+                            this.log.info("The color " + command + " is not a hex");
+                            return;
+                        }
+                        rawString = "48090200" + this.DecToHex(rawString) + rgbstr + "00";
+                    } else {
+                        this.log.info("Only colors are allowed");
+                        return;
+                    }
+                } else if (command == "time") {
+                    const a = new Date();
+                    rawString = "48090200" + this.DecToHex(rawString) + this.DecToHex(a.getHours()) + this.DecToHex(a.getMinutes()) + this.DecToHex(a.getSeconds()) + "00";
+                } else {
+                    rawString = "48070200" + this.DecToHex(rawString) + this.DecToHex(state.val) + "00";
+                }
+
+                this.log.debug("Command " + rawString);
+                if (this.config.useudpremote && lanIp !== undefined) {
+                    const datajson = JSON.stringify({
                         action: "appSend",
+                        msgId: 1,
                         params: {
                             appTid: "E897DCA2-0D8A-4531-AC91-9BC0900318D9",
-                            data: { raw: rawString },
                             devTid: deviceId,
                             ctrlKey: ctrlKey,
+                            data: { raw: rawString },
                         },
-                    })
-                );
+                    });
+                    const message = new Buffer(datajson);
+                    const client = udpSocket.createSocket("udp4");
+                    client.send(message, 0, message.length, 10000, lanIp, (err, bytes) => {
+                        if (err) {
+                            this.log.error(err.toString());
+                        }
+                        client.close();
+                    });
+                    this.log.debug("Sent remote");
+                    return;
+                }
+                if (workMode == "JSON_TRANSPARENT") {
+                    this.ws.send(
+                        JSON.stringify({
+                            msgId: 65,
+                            action: "appSend",
+                            params: {
+                                appTid: "E897DCA2-0D8A-4531-AC91-9BC0900318D9",
+                                data: { raw: rawString },
+                                devTid: deviceId,
+                                ctrlKey: ctrlKey,
+                            },
+                        })
+                    );
+                } else {
+                    this.ws.send(
+                        JSON.stringify({
+                            msgId: 65,
+                            action: "appSend",
+                            params: {
+                                appTid: "E897DCA2-0D8A-4531-AC91-9BC0900318D9",
+                                data: {
+                                    cmdId: 1,
+                                    command: state.val,
+                                },
+                                devTid: deviceId,
+                                ctrlKey: ctrlKey,
+                            },
+                        })
+                    );
+                }
             }
         }
     }

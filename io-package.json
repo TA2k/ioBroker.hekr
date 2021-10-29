@@ -87,7 +87,8 @@
     ],
     "native": {
         "username": "",
-        "password": ""
+        "password": "",
+        "useudpremote": ""
     },
     "objects": [],
     "instanceObjects": [

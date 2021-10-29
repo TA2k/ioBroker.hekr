@@ -38,4 +38,16 @@ systemDictionary = {
         pl: "Hasło do aplikacji",
         "zh-cn": "应用密码",
     },
+    "UDP Remote": {
+        en: "Send commands in local network",
+        de: "Befehle im lokalen Netzwerk senden",
+        ru: "Отправлять команды в локальной сети",
+        pt: "Envie comandos na rede local",
+        nl: "Opdrachten verzenden in lokaal netwerk",
+        fr: "Envoyer des commandes dans le réseau local",
+        it: "Invia comandi in rete locale",
+        es: "Enviar comandos en la red local",
+        pl: "Wysyłaj polecenia w sieci lokalnej",
+        "zh-cn": "在本地网络中发送命令",
+    },
 };

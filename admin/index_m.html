@@ -17,6 +17,7 @@
 
         <script type="text/javascript">
             // This will be called by the admin adapter when the settings page loads
+            if (settings.useudpremote === undefined) settings.useudpremote = false;
             function load(settings, onChange) {
                 // example: select elements with id=key and class=value and insert value
                 if (!settings) return;
@@ -78,6 +79,12 @@
                 <div class="col s6 input-field">
                     <input type="password" class="value" id="password" />
                     <label for="password" class="translate">App Password</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s6 input-field">
+                    <input id="useudpremote" type="checkbox" class="value" />
+                    <label for="useudpremote" class="translate">UDP Remote</label>
                 </div>
             </div>
         </div>

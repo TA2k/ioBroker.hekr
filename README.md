@@ -1,4 +1,5 @@
 ![Logo](admin/hekr.png)
+
 # ioBroker.hekr
 
 [![NPM version](https://img.shields.io/npm/v/iobroker.hekr.svg)](https://www.npmjs.com/package/iobroker.hekr)
@@ -15,23 +16,41 @@
 
 Adapter for Hekr Wisen Elro Apps
 
-## Loginablauf:
+## Loginablauf
+
 Die Wisen App Mail und Passwort eingeben.
 
-## Steuern
-Einschalten/Ausschalten
-hekr.0.ID.status.sw auf 1 oder 0 setzen
-hekr.0.ID.status.light_Sw auf 1 oder 0 setzen
+## Befehle im lokalen Netzwerk senden
 
-## Diskussion und Fragen:
-https://forum.iobroker.net/topic/48262/test-adapter-hekr-wisen-elro-app-v0-0-x
+Befehle werden im lokalen Netzwerk an das Gerät gesendet.
+
+## Steuern
+
+Einschalten/Ausschalten
+hekr.0.{ID}.status.sw auf 1 oder 0 setzen
+hekr.0.{ID}.status.light_Sw auf 1 oder 0 setzen
+hekr.0.{ID}.status.Statue 0 = Aus, 1 = Standby, 2 = Licht an / L�fter an
+hekr.0.{ID}.status.cleaning auf 0 stzen l�scht die Info Filterwechsel.
+hekr.0.{ID}.status.rgb Wechselt die Farbe der Haube. Nur Hex erlaubt Bsp. #65ff00 oder 65ff00
+hekr.0.{ID}.status.speed Geschwindigkeit 1, 2, 3 und 4 m�glich.
+hekr.0.{ID}.status.time Zeit von IOBroker wird wird �bertragen.
+hekr.0.{ID}.status.tm_Minutes Automatische Abschaltung Wert 1-60 m�glich
+hekr.0.{ID}.status.B Kann nicht gesteuert werden. Anzeige der aktuelle Farbe.
+hekr.0.{ID}.status.G Kann nicht gesteuert werden. Anzeige der aktuelle Farbe.
+hekr.0.{ID}.status.R Kann nicht gesteuert werden. Anzeige der aktuelle Farbe.
+hekr.0.{ID}.status.fitter Bei 1 muss der Kohlefilter gewechselt oder gereinigt werden.
+
+## Diskussion und Fragen
+<https://forum.iobroker.net/topic/48262/test-adapter-hekr-wisen-elro-app-v0-0-x>
 
 ## Changelog
 
-### 0.0.1
+### 0.0.2
+
 * (TA2k) initial release
 
 ## License
+
 MIT License
 
 Copyright (c) 2021 TA2k <tombox2020@gmail.com>
