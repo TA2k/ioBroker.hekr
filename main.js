@@ -223,14 +223,18 @@ class Hekr extends utils.Adapter {
         };
         this.ws.on("open", () => {
             //this.log.debug("WS received:" + message);
-            this.log.debug("WS open");
-            this.ws.send(JSON.stringify(this.wsAuthMessage));
-            if (this.heartbeatInterval) {
-                clearInterval(this.heartbeatInterval);
+            try {
+                this.log.debug("WS open");
+                this.ws.send(JSON.stringify(this.wsAuthMessage));
+                if (this.heartbeatInterval) {
+                    clearInterval(this.heartbeatInterval);
+                }
+                this.heartbeatInterval = setInterval(() => {
+                    this.ws.send(JSON.stringify({ msgId: 53, action: "heartbeat" }));
+                }, 10 * 1000); // 30se
+            } catch (error) {
+                this.log.error(error);
             }
-            this.heartbeatInterval = setInterval(() => {
-                this.ws.send(JSON.stringify({ msgId: 53, action: "heartbeat" }));
-            }, 10 * 1000); // 30se
         });
 
         this.ws.on("message", async (message) => {
