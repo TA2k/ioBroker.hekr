@@ -45,7 +45,7 @@ hekr.0.{ID}.status.fitter Bei 1 muss der Kohlefilter gewechselt oder gereinigt w
 
 ## Changelog
 
-### 0.0.2
+### 0.0.3
 
 * (TA2k) initial release
 

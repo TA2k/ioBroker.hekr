@@ -310,16 +310,16 @@ class Hekr extends utils.Adapter {
             callback();
         }
     }
+    DecToHex(d) {
+        const hex = d.toString(16);
+        return hex.length == 1 ? "0" + hex : hex;
+    }
 
     /**
      * Is called if a subscribed state changes
      * @param {string} id
      * @param {ioBroker.State | null | undefined} state
      */
-    DecToHex(d) {
-        const hex = d.toString(16);
-        return hex.length == 1 ? "0" + hex : hex;
-    }
 
     async onStateChange(id, state) {
         if (state) {
@@ -347,9 +347,9 @@ class Hekr extends utils.Adapter {
                 if (command == "rgb") {
                     if (state.val != "ffffff" && state.val != "000000") {
                         let rgbstr = state.val;
-                        if (rgbstr.length == 7) {
+                        if (rgbstr && rgbstr.length == 7) {
                             rgbstr = rgbstr.replace("#", "");
-                        } else if (rgbstr.length != 6) {
+                        } else if (rgbstr && rgbstr.length != 6) {
                             this.log.info("The color " + command + " is not a hex");
                             return;
                         }
