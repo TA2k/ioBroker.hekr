@@ -4,8 +4,8 @@
         "version": "0.0.4",
         "news": {
             "0.0.4": {
-                "en": "initial release"
-            }
+                "en": "Bugfixes and add RGB_sw"
+            },
             "0.0.3": {
                 "en": "initial release",
                 "de": "Erstveröffentlichung",
