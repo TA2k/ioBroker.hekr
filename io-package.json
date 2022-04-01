@@ -1,9 +1,9 @@
 {
     "common": {
         "name": "hekr",
-        "version": "0.0.4",
+        "version": "0.0.5",
         "news": {
-            "0.0.4": {
+            "0.0.5": {
                 "en": "Bugfixes and add RGB_sw"
             },
             "0.0.3": {
