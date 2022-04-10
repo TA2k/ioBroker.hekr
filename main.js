@@ -246,7 +246,6 @@ class Hekr extends utils.Adapter {
             },
         };
         this.ws.on("open", () => {
-            //this.log.debug("WS received:" + message);
             //Neu Anfang
             this.setState("info.connection", true, true);
             //Neu Ende
@@ -277,41 +276,30 @@ class Hekr extends utils.Adapter {
             }, 70 * 1000); //1min
             try {
                 const jsonMessage = JSON.parse(message);
-
+                this.log.debug("WS devSend:" + message);
                 if (jsonMessage.action === "devSend") {
                     const params = jsonMessage.params;
-                    //Neu Anfang
-                    if (this.c_update === 0) this.check = params.data;
-                    ++this.c_update;
-                    //Neu Ende
-                    //Ge�ndert Anfang
-                    if (Object.keys(params.data).length > 1 && this.c_update > 3) {
-                        this.log.debug("WS received:" + message);
-                        this.c_update = 1;
-                        Object.keys(params.data).forEach((n) => {
-                            if (this.check[n] !== params.data[n]) this.setState(params.devTid + ".status." + n, params.data[n], true);
-                        });
-                        this.check = params.data;
-                        //this.json2iob.parse(params.devTid + ".status", params.data, { write: true });
+                    if (Object.keys(params.data).length > 1) {
+                        //Neu Anfang
+                        if (this.c_update === 0) {
+                            this.check = params.data;
+                            this.log.debug("Data lenght: " + Object.keys(params.data).length);
+                            this.log.debug("Create Datapoints: " + JSON.stringify(params.data));
+                            this.json2iob.parse(params.devTid + ".status", params.data, { write: true });
+                        }
+                        ++this.c_update;
+                        //Neu Ende
+                        //Ge�ndert Anfang
+                        if (this.c_update > 2) {
+                            this.log.debug("WS write:" + message);
+                            this.c_update = 1;
+                            Object.keys(params.data).forEach((n) => {
+                                if (this.check[n] !== params.data[n]) this.setState(params.devTid + ".status." + n, params.data[n], true);
+                            });
+                            this.check = params.data;
+                        }
                     }
                     //Ge�ndert Ende
-                    // if (params.data.raw) {
-                    //     for (let n = 0; n < params.data.raw.length; n += 2) {
-                    //         const index = n / 2;
-                    //         await this.setObjectNotExistsAsync(params.devTid + ".status.rawData.value" + index, {
-                    //             type: "state",
-                    //             common: {
-                    //                 role: "value",
-                    //                 type: "number",
-                    //                 write: false,
-                    //                 read: false,
-                    //             },
-                    //             native: {},
-                    //         });
-
-                    //         this.setState(params.devTid + ".status.rawData.value" + index, parseInt(params.data.raw.substr(n, 2), 16), true);
-                    //     }
-                    // }
                 } else {
                     this.log.debug("WS received:" + message);
                 }
