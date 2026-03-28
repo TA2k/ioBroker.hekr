@@ -10,7 +10,7 @@ const utils = require("@iobroker/adapter-core");
 const Json2iob = require("./lib/json2iob");
 const axios = require("axios");
 const WebSocket = require("ws");
-const udpSocket = require("dgram");
+const udpSocket = require("node:dgram");
 
 class Hekr extends utils.Adapter {
     /**
