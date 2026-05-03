@@ -49,6 +49,8 @@ hekr.0.{ID}.status.fitter Bei 1 muss der Kohlefilter gewechselt oder gereinigt w
 
 * (TA2k) initial release
 
+[Older changelogs can be found there](CHANGELOG_OLD.md)
+
 ## License
 
 MIT License
