@@ -45,6 +45,10 @@ hekr.0.{ID}.status.fitter Bei 1 muss der Kohlefilter gewechselt oder gereinigt w
 
 ## Changelog
 
+
+### **WORK IN PROGRESS**
+- (ioBroker-Bot) Adapter requires js-controller >= 6.0.11 now.
+
 ### 0.0.3
 
 * (TA2k) initial release
